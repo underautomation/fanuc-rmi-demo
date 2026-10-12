@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "underautomation-fanuc-csharp": {
+      "source": "underautomation/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/fanuc-csharp/skills/underautomation-fanuc-csharp/SKILL.md",
+      "computedHash": "ece1878576303b88b55a24d28cdd847efa18459ab8c436c8da4a598e0efc782d"
+    },
+    "underautomation-fanuc-python": {
+      "source": "underautomation/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/fanuc-python/skills/underautomation-fanuc-python/SKILL.md",
+      "computedHash": "d2ea44c327676bb0a44abc396b3679c9e932c7ec74d02d9b0521fe4f40070cdb"
+    }
+  }
+}

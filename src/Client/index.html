@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fanuc RMI Demo: program a Fanuc robot from C# or Python | UnderAutomation</title>
+  <meta name="description" content="Free online demo of the Fanuc Remote Motion Interface (RMI, option R912). Build a robot sequence with blocks, run it on your Fanuc robot from C# or Python with the UnderAutomation SDK, and read the code behind each step.">
+  <meta name="keywords" content="Fanuc RMI, Remote Motion Interface, R912, Fanuc SDK, Fanuc C#, Fanuc Python, Fanuc .NET, robot palletizing, pick and place, RMI_MOVE, UnderAutomation, Blockly, ROBOGUIDE">
+  <meta name="author" content="UnderAutomation">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#15181e">
+  <link rel="canonical" href="https://fanuc-rmi-demo.underautomation.com/">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="UnderAutomation">
+  <meta property="og:url" content="https://fanuc-rmi-demo.underautomation.com/">
+  <meta property="og:title" content="Fanuc RMI Demo: program a Fanuc robot from C# or Python">
+  <meta property="og:description" content="Build a robot sequence with blocks, run it on a Fanuc robot through the Remote Motion Interface, and read the C# and Python code behind each step.">
+  <meta property="og:image" content="https://fanuc-rmi-demo.underautomation.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fanuc RMI Demo: a block editor that drives a Fanuc robot from C# or Python">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fanuc RMI Demo: program a Fanuc robot from C# or Python">
+  <meta name="twitter:description" content="Build a robot sequence with blocks, run it on a Fanuc robot through RMI, and read the C# and Python code behind each step.">
+  <meta name="twitter:image" content="https://fanuc-rmi-demo.underautomation.com/og.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Fanuc RMI Demo",
+    "url": "https://fanuc-rmi-demo.underautomation.com/",
+    "image": "https://fanuc-rmi-demo.underautomation.com/og.png",
+    "description": "Block editor that runs a sequence on a Fanuc robot through the Remote Motion Interface (RMI), with a C# or a Python backend built on the UnderAutomation Fanuc SDK.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows, Linux, macOS",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "author": { "@type": "Organization", "name": "UnderAutomation", "url": "https://underautomation.com" }
+  }
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="robot" viewBox="0 0 48 48" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 41h22" stroke-width="5"/><path d="M22 37 16 19" stroke-width="7"/><path d="M16 19 33 12" stroke-width="6"/>
+          <path d="M33 12l5 7" stroke-width="4"/><path d="M35 21l6-3M35 21l-1 5M41 18l2 5" stroke-width="2.5"/>
+        </g>
+        <g class="joints" stroke="currentColor" stroke-width="2"><circle cx="22" cy="36" r="3.5"/><circle cx="16" cy="19" r="3.5"/><circle cx="33" cy="12" r="3"/></g>
+      </svg>
+      <div>
+        <h1>Fanuc RMI Demo</h1>
+        <p>Remote Motion Interface, from <b>C#</b> or <b>Python</b></p>
+      </div>
+    </div>
+    <div class="connection">
+      <span id="mode" class="badge">Detecting backend…</span>
+      <input id="ip" placeholder="Robot IP address" aria-label="Robot IP address" spellcheck="false">
+      <span class="with-code">
+        <button id="connect" class="primary">Connect</button>
+        <button class="code" data-snippet="connect" title="Show the SDK code behind this button">&lt;/&gt;</button>
+      </span>
+      <button id="settings" title="License key">Settings</button>
+    </div>
+    <nav class="links" aria-label="UnderAutomation">
+      <a class="more" href="#about" title="What is this demo, how it works, questions">About ↓</a>
+      <a class="cta" href="https://underautomation.com/fanuc" target="_blank" rel="noopener">Get the SDK</a>
+      <a class="icon" href="https://github.com/underautomation/fanuc-rmi-demo" target="_blank" rel="noopener" title="Source code on GitHub" aria-label="Source code on GitHub"><svg viewBox="0 0 16 16" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.77-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0z"/></svg></a>
+      <a class="ua" href="https://underautomation.com" target="_blank" rel="noopener" title="UnderAutomation, the SDK behind this demo">
+        <span>UnderAutomation</span><img src="ua-logo.png" alt="UnderAutomation logo" width="30" height="36">
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="editor">
+      <div class="toolbar">
+        <label>Example
+          <select id="examples">
+            <option value="">Load an example…</option>
+            <option value="pick">Pick &amp; place (relative moves)</option>
+            <option value="pallet">Palletizing 2 × 2 × 2</option>
+          </select>
+        </label>
+        <span class="with-code">
+          <button id="teach" title="Copy the current position of the robot into the selected move block">Use current position</button>
+          <button class="code" data-snippet="position" title="Show the SDK code behind this button">&lt;/&gt;</button>
+        </span>
+        <span class="hint">Right-click a block: <i>Show SDK code</i></span>
+      </div>
+      <div id="blockly"></div>
+    </section>
+
+    <aside>
+      <section>
+        <h2>Robot</h2>
+        <ul id="checklist" class="checklist"></ul>
+        <div id="position" class="position"></div>
+      </section>
+
+      <section>
+        <h2>Run</h2>
+        <label class="override">Speed override <output id="overrideValue">10 %</output>
+          <input id="override" type="range" min="1" max="100" value="10">
+        </label>
+        <div class="buttons">
+          <span class="with-code"><button id="run" class="primary">▶ Run</button><button class="code" data-snippet="run">&lt;/&gt;</button></span>
+          <span class="with-code"><button id="pause">Pause</button><button class="code" data-snippet="pause">&lt;/&gt;</button></span>
+          <span class="with-code"><button id="continue">Continue</button><button class="code" data-snippet="continue">&lt;/&gt;</button></span>
+          <span class="with-code"><button id="abort" class="danger">Abort</button><button class="code" data-snippet="abort">&lt;/&gt;</button></span>
+          <span class="with-code"><button id="reset">Reset</button><button class="code" data-snippet="reset">&lt;/&gt;</button></span>
+        </div>
+        <p id="runMessage" class="message" hidden></p>
+      </section>
+
+      <section class="grow">
+        <div class="tabs" role="tablist">
+          <button role="tab" data-tab="steps" class="active">Steps</button>
+          <button role="tab" data-tab="csharp">C#</button>
+          <button role="tab" data-tab="python">Python</button>
+          <button id="copyCode" class="small" hidden>Copy</button>
+        </div>
+        <ol id="steps" class="steps"></ol>
+        <pre id="code" class="code-view" hidden></pre>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Below the application: what this demo is, for the visitors who scroll and for the search engines -->
+  <section class="about" id="about">
+    <div class="hero">
+      <h2>Move a Fanuc robot from your own C# or Python application</h2>
+      <p>The <b>Remote Motion Interface (RMI)</b> of Fanuc controllers lets a PC send motions to the robot over Ethernet.
+        The <a href="https://underautomation.com/fanuc" target="_blank" rel="noopener">UnderAutomation Fanuc SDK</a> speaks RMI for you:
+        a few lines of code connect to the controller, queue joint and linear motions, wait for inputs, write outputs and follow each instruction while the robot runs.
+        This page is a complete application built with it. Its source code is on
+        <a href="https://github.com/underautomation/fanuc-rmi-demo" target="_blank" rel="noopener">GitHub</a>.</p>
+      <p class="actions">
+        <a class="cta" href="https://underautomation.com/fanuc" target="_blank" rel="noopener">Get the Fanuc SDK, free for 30 days</a>
+        <a href="https://underautomation.com/fanuc/documentation/rmi" target="_blank" rel="noopener">Read the RMI documentation</a>
+      </p>
+    </div>
+
+    <div class="cards">
+      <article>
+        <h3>Nothing to install on the robot</h3>
+        <p>No TP program to write, no Karel, no PCDK or Robot Interface on the PC. The controller only needs the option
+          <b>R912 Remote Motion Interface</b>. It also works with a ROBOGUIDE virtual robot.</p>
+      </article>
+      <article>
+        <h3>The PC decides the positions</h3>
+        <p>Palletizing with a pattern computed on the fly, pick and place guided by a camera, machine tending driven by an MES:
+          the targets come from your software, not from taught points.</p>
+      </article>
+      <article>
+        <h3>The same API in C# and Python</h3>
+        <p>One .NET library and one pip package. Linear, joint, circular and spline motions,
+          FINE and CNT terminations, frames, I/O, registers and payload.</p>
+      </article>
+    </div>
+
+    <div class="columns">
+      <div>
+        <h2>How this demo works</h2>
+        <ol>
+          <li><b>Build a sequence</b> with the blocks: motions, waits, digital outputs, loops and a pallet pattern.</li>
+          <li><b>Run it in demo mode</b>, on a simulated robot in your browser.</li>
+          <li><b>Connect your robot</b>: download the .NET or the Python backend, start it on a PC of the robot network, enter the IP address of the controller.</li>
+          <li><b>Read the code</b>: the C# and Python tabs give the whole program of your sequence, and each button shows the SDK calls behind it.</li>
+        </ol>
+      </div>
+      <div>
+        <h2>Questions</h2>
+        <details>
+          <summary>What does my Fanuc robot need?</summary>
+          <p>The option R912 (Remote Motion Interface), the controller in AUTO mode with the teach pendant disabled, and an Ethernet link to the PC on TCP port 16001.</p>
+        </details>
+        <details>
+          <summary>Can I try it without a robot?</summary>
+          <p>Yes. Without a backend, this page drives a simulated robot. With a backend, it also connects to a ROBOGUIDE virtual robot.</p>
+        </details>
+        <details>
+          <summary>Is the demo open source?</summary>
+          <p>The page, the .NET backend and the Python backend are on GitHub. The SDK they use runs 30 days without a license key.</p>
+        </details>
+        <details>
+          <summary>RMI or Stream Motion?</summary>
+          <p>RMI when the controller plans a few motions that you send, like in a TP program. Stream Motion (option J519) when your PC gives the position at every cycle. The SDK does both.</p>
+        </details>
+      </div>
+    </div>
+
+    <footer>
+      <a class="ua" href="https://underautomation.com" target="_blank" rel="noopener"><img src="ua-logo.png" alt="" width="30" height="36"><span>UnderAutomation</span></a>
+      <span>Software libraries to communicate with industrial robots.</span>
+      <span class="legal">FANUC and ROBOGUIDE are trademarks of FANUC CORPORATION. UnderAutomation is not affiliated with FANUC.</span>
+    </footer>
+  </section>
+
+  <noscript><p class="noscript">This demo needs JavaScript. The source code and the documentation are on
+    <a href="https://github.com/underautomation/fanuc-rmi-demo">GitHub</a>.</p></noscript>
+
+  <!-- The SDK code behind a button or a block -->
+  <dialog id="codeDialog">
+    <form method="dialog">
+      <header>
+        <h3 id="codeTitle"></h3>
+        <button class="small" value="close" aria-label="Close">✕</button>
+      </header>
+      <p id="codeText"></p>
+      <div class="tabs">
+        <button type="button" data-lang="csharp">C#</button>
+        <button type="button" data-lang="python">Python</button>
+        <button type="button" id="copySnippet" class="small">Copy</button>
+      </div>
+      <pre id="codeSnippet" class="code-view"></pre>
+      <a id="codeDoc" target="_blank" rel="noopener">Read the documentation →</a>
+    </form>
+  </dialog>
+
+  <!-- No backend on this PC: the page runs on a simulated robot -->
+  <dialog id="backendDialog">
+    <form method="dialog">
+      <header>
+        <h3>Connect to your robot</h3>
+        <button class="small" value="close" aria-label="Close">✕</button>
+      </header>
+      <p>This page is running in <b>demo mode</b>, on a simulated robot. A web page cannot talk to a robot:
+        a small backend on your PC does it, with the UnderAutomation Fanuc SDK. Pick one, both do the same.</p>
+      <div class="downloads">
+        <a class="download" href="https://github.com/underautomation/fanuc-rmi-demo/releases/latest/download/FanucRmiDemo.exe">
+          <b>.NET backend</b><span>FanucRmiDemo.exe, Windows, one file. The .NET runtime is inside: nothing to install</span>
+        </a>
+        <a class="download" href="https://github.com/underautomation/fanuc-rmi-demo/releases/latest/download/fanuc-rmi-demo-python.zip">
+          <b>Python backend</b><span>fanuc-rmi-demo-python.zip, then <code>pip install -r requirements.txt</code> and <code>python app.py</code></span>
+        </a>
+      </div>
+      <ol>
+        <li>Download and start a backend. It listens on <code>http://localhost:16080</code>.</li>
+        <li>If your browser asks to access devices on your local network, allow it.</li>
+        <li>Come back here and press <b>Retry</b>.</li>
+      </ol>
+      <p id="backendMessage" class="message" hidden></p>
+      <footer>
+        <a href="https://github.com/underautomation/fanuc-rmi-demo" target="_blank" rel="noopener">Source code on GitHub</a>
+        <button type="button" id="retryBackend" class="primary">Retry</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <form method="dialog">
+      <header>
+        <h3>Settings</h3>
+        <button class="small" value="close" aria-label="Close">✕</button>
+      </header>
+      <p id="licenseState"></p>
+      <label>Licensee <input id="licensee" autocomplete="off"></label>
+      <label>License key <input id="licenseKey" autocomplete="off" placeholder="Leave empty to keep the current key"></label>
+      <p class="hint">Saved in <code>fanuc-rmi-demo.json</code>, next to the backend.</p>
+      <footer>
+        <a href="https://underautomation.com/fanuc" target="_blank" rel="noopener">Get a license</a>
+        <span class="with-code">
+          <button type="button" id="saveSettings" class="primary">Save</button>
+          <button type="button" class="code" data-snippet="license">&lt;/&gt;</button>
+        </span>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Before a sequence runs on a real robot -->
+  <dialog id="confirmDialog">
+    <form method="dialog">
+      <header><h3>Run on the real robot?</h3></header>
+      <p id="confirmText"></p>
+      <ul class="safety">
+        <li>Nobody is in the cell and nothing is on the path.</li>
+        <li>Every target can be reached by the robot.</li>
+        <li>The emergency stop is at hand.</li>
+      </ul>
+      <footer>
+        <button value="cancel">Cancel</button>
+        <button value="run" class="primary">Run the sequence</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="vendor/blockly/blockly.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

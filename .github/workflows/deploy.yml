@@ -1,0 +1,44 @@
+name: Release and deploy
+
+# A tag v* publishes the two backends as a GitHub release, then deploys the web page to Vercel
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Test the blocks and the generated code
+        run: node tests/blocks.test.mjs
+
+      - name: Build FanucRmiDemo.exe and fanuc-rmi-demo-python.zip
+        run: .\build_all.cmd
+
+      # The download links of the web page point to releases/latest/download
+      - name: Publish the backends as a GitHub release
+        run: gh release create "${{ github.ref_name }}" dist/FanucRmiDemo.exe dist/fanuc-rmi-demo-python.zip --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      - name: Deploy the web page to Vercel
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}

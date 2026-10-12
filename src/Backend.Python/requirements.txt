@@ -1,0 +1,1 @@
+UnderAutomation.Fanuc>=7.1

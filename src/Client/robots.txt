@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://fanuc-rmi-demo.underautomation.com/sitemap.xml

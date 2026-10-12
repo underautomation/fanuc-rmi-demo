@@ -1,0 +1,19 @@
+[Bb]in/
+[Oo]bj/
+publish/
+dist/
+.vs/
+*.user
+.venv/
+__pycache__/
+.vercel
+# settings of the user, written next to the backend
+fanuc-rmi-demo.json
+
+/.claude/skills/underautomation-fanuc-csharp
+/.claude/skills/underautomation-fanuc-python
+/.claude/settings.local.json
+/.agents/skills/underautomation-fanuc-csharp
+/.agents/skills/underautomation-fanuc-python
+
+.vercel
