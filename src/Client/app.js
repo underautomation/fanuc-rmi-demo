@@ -69,7 +69,20 @@ async function useBackend(found) {
 }
 
 // ---------------------------------------------------------------- editor
-Blockly.common.defineBlocksWithJsonArray(BLOCKS);
+// Two small icons at the end of each block: the SDK code of the block, and for a move block the current position of the robot
+const icon = label => 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="20"><rect width="26" height="20" rx="5" fill="#000" fill-opacity=".28"/>${label}</svg>`);
+const ICON_CODE = icon('<text x="13" y="14" font-family="monospace" font-weight="700" font-size="11" fill="#fff" text-anchor="middle">&lt;/&gt;</text>');
+const ICON_TEACH = icon('<g fill="none" stroke="#fff" stroke-width="1.8"><circle cx="13" cy="10" r="4.5"/><path d="M13 2v4M13 14v4M5 10h4M17 10h4"/></g>');
+
+Blockly.Extensions.register('block_tools', function () {
+  const inputs = this.inputList;
+  const row = [...inputs].reverse().find(i => i.type === Blockly.inputs.inputTypes.DUMMY) ?? inputs[inputs.length - 1];
+  if (['move_linear', 'move_joint'].includes(this.type))
+    row.appendField(new Blockly.FieldImage(ICON_TEACH, 26, 20, 'Use the current position of the robot', f => teach(f.getSourceBlock())));
+  row.appendField(new Blockly.FieldImage(ICON_CODE, 26, 20, 'Show the SDK code of this block', f => showBlockCode(f.getSourceBlock())));
+});
+Blockly.common.defineBlocksWithJsonArray(BLOCKS.map(b => ({ ...b, extensions: ['block_tools'] })));
 const workspace = Blockly.inject('blockly', {
   toolbox: TOOLBOX,
   renderer: 'zelos',
@@ -91,23 +104,49 @@ workspace.addChangeListener(event => {
   renderCode();
 });
 
-Blockly.ContextMenuRegistry.registry.register({
-  id: 'show_sdk_code',
-  weight: 0,
-  scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-  displayText: 'Show SDK code',
-  preconditionFn: () => 'enabled',
-  callback: scope => {
-    const block = Blockly.serialization.blocks.save(scope.block, { addNextBlocks: false });
-    showCode({
-      title: scope.block.type === 'rmi_program' ? 'Robot program' : 'This block, with the SDK',
-      text: scope.block.getTooltip() || 'The code of this block and of the blocks inside it.',
-      doc: 'https://underautomation.com/fanuc/documentation/rmi-motion',
-      csharp: blockCode(block, 'csharp'),
-      python: blockCode(block, 'python'),
-    });
-  },
-});
+function showBlockCode(block) {
+  if (block.isInFlyout) return;
+  const saved = Blockly.serialization.blocks.save(block, { addNextBlocks: false });
+  showCode({
+    title: block.type === 'rmi_program' ? 'Robot program' : 'This block, with the SDK',
+    text: block.getTooltip() || 'The code of this block and of the blocks inside it.',
+    doc: 'https://underautomation.com/fanuc/documentation/rmi-motion',
+    csharp: blockCode(saved, 'csharp'),
+    python: blockCode(saved, 'python'),
+  });
+}
+
+/** The fields of a move block that hold the position `p` of the robot, [name, value] */
+function positionFields(type, p) {
+  const round = n => Math.round(n * 1000) / 1000;
+  return (type === 'move_linear' ? ['X', 'Y', 'Z', 'W', 'P', 'R'].map((f, i) => [f, p.cartesian[i]])
+    : p.joints.map((j, i) => [`J${i + 1}`, j])).map(([name, value]) => [name, round(value)]);
+}
+
+function teach(block) {
+  if (block.isInFlyout) return;
+  if (!state.connected || !state.position) {
+    actionError = 'Connect a robot to copy its current position into a block.';
+    return render();
+  }
+  actionError = null;
+  positionFields(block.type, state.position).forEach(([name, value]) => block.setFieldValue(value, name));
+  render();
+}
+
+/** The blocks of the palette start at the current position and speed override of the robot */
+let paletteKey = '';
+function updatePalette() {
+  const p = state.connected && state.position;
+  const key = JSON.stringify([p, $('override').value]);
+  if (key === paletteKey || workspace.getFlyout().isVisible()) return;
+  paletteKey = key;
+  const values = type => p ? Object.fromEntries([...positionFields(type, p), ...(type === 'move_joint' ? [['SPEED', +$('override').value]] : [])]) : undefined;
+  const toolbox = structuredClone(TOOLBOX);
+  for (const category of toolbox.contents)
+    category.contents = category.contents.map(b => ({ ...b, fields: values(b.type) }));
+  workspace.updateToolbox(toolbox);
+}
 
 function currentSteps() {
   try { return { steps: flatten(save()) }; } catch (e) { return { steps: [], error: e.message }; }
@@ -163,7 +202,6 @@ function render() {
   $('continue').disabled = state.run.state !== 'paused';
   $('abort').disabled = !running();
   $('reset').disabled = !ready;
-  $('teach').disabled = !ready;
 
   // Outcome of the last run, with what to do next
   const message = $('runMessage'), run = state.run;
@@ -174,6 +212,7 @@ function render() {
     ? `<b>${escape(failure)}</b>${(actionError ? [] : runHints(`${run.error} ${state.controller?.lastError ?? ''}`)).map(h => `<span>${escape(h)}</span>`).join('')}`
     : run.state === 'done' ? 'Sequence completed.' : run.state === 'aborted' ? 'Sequence aborted.' : 'Paused. Press Continue to resume.';
 
+  updatePalette();
   renderSteps();
   // The block that the robot is executing
   const current = running() ? run.steps.find(s => !['Completed', 'Error'].includes(s.status)) : null;
@@ -338,19 +377,6 @@ $('examples').addEventListener('change', e => {
   if (!name) return;
   // The palletizing example is built around the position of the robot, so that its targets can be reached
   load(EXAMPLES[name](state.position?.cartesian ?? [500, 0, 400, 180, 0, 0]));
-});
-
-$('teach').addEventListener('click', () => {
-  const block = Blockly.getSelected(), p = state.position;
-  const fields = block?.type === 'move_linear' ? ['X', 'Y', 'Z', 'W', 'P', 'R'].map((f, i) => [f, p.cartesian[i]])
-    : block?.type === 'move_joint' ? p.joints.map((j, i) => [`J${i + 1}`, j]) : null;
-  if (!fields) {
-    actionError = 'Select a "Move linear to" or a "Move joint to" block first.';
-    return render();
-  }
-  actionError = null;
-  fields.forEach(([name, value]) => block.setFieldValue(Math.round(value * 1000) / 1000, name));
-  render();
 });
 
 $('settings').addEventListener('click', () => {

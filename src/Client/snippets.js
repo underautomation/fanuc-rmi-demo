@@ -35,8 +35,8 @@ robot.disconnect()`,
   },
 
   position: {
-    title: 'Use current position',
-    text: 'Reads the position of the robot. The page polls it to show the live position, and copies it into the selected block.',
+    title: 'Current position',
+    text: 'Reads the position of the robot. The page polls it to show the live position, and the target icon of a move block copies it into the block.',
     doc: DOC + 'rmi-frames-io',
     csharp: `CartesianPositionWithUserFrame position = robot.Rmi.ReadCartesianPosition().Position;
 Console.WriteLine($"X={position.X} Y={position.Y} Z={position.Z} W={position.W} P={position.P} R={position.R}");
